@@ -12,5 +12,6 @@ namespace Engine3D
             this.origin = origin;
             this.direction = direction;
         }
+        
     }
 }

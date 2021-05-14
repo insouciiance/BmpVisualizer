@@ -12,8 +12,8 @@ namespace Engine3D
         {
             string url = @"C:\Users\danvu\Documents\GitHubPP\BmpVisualizer\Engine3D\Engine3D\bin\Debug\net5.0\myimg.png";
             Bitmap b = new Bitmap(1280,720);
-            ConsoleRenderer renderer = new ConsoleRenderer(b);
-            renderer.Draw();
+            Camera cam = new Camera(new Vector3(0, 0, -20), new Vector3(0, 0, 1), 10,b);
+            cam.Draw();
             b.Save(url,ImageFormat.Png);
         }
     }

@@ -38,6 +38,7 @@ namespace Engine3D
             color = Color.Black;
             Ray r = new Ray(Vector3.Zero, Vector3.Normalize(new Vector3(uv.X, uv.Y,1)));
             Vector3 sphere = new Vector3(0, 0, 8);
+            Vector3 sphere2 = new Vector3(0, 0, 6);
             float radious = 1;
 
             float t = Vector3.Dot(sphere - r.origin, r.direction);
