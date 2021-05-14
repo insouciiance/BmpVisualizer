@@ -16,16 +16,16 @@ namespace Engine3D
 
         public Vector3 centerOfScreen;
         
-        public Camera(Vector3 cameraOrigin, Vector3 lookDirection, float distanceToScreen,Bitmap canvas)
+        public Camera(Vector3 cameraOrigin, Vector3 lookAtPoint, float distanceToScreen,Bitmap canvas)
         {
             _cameraOrigin = cameraOrigin;
-            _lookDirection = lookDirection;
             _distanceToScreen = distanceToScreen;
             _canvas = canvas;
 
-            localRight = Vector3.Cross(lookDirection, new Vector3(0, 1, 0));
-            localUp = Vector3.Cross(lookDirection, localRight);
-            centerOfScreen = cameraOrigin + lookDirection * distanceToScreen;
+            _lookDirection = Vector3.Normalize(lookAtPoint - _cameraOrigin);
+            localRight = Vector3.Cross(_lookDirection, new Vector3(0, 1, 0));
+            localUp = Vector3.Cross(_lookDirection, localRight);
+            centerOfScreen = cameraOrigin + _lookDirection * distanceToScreen;
         }
 
         public void Draw()
@@ -51,14 +51,15 @@ namespace Engine3D
 
 
             float dist = 0;
-            dist += DrawPooint(r, new Vector3(0,0,0));
-            dist += DrawPooint(r, new Vector3(0,0,1));
-            dist += DrawPooint(r, new Vector3(0,1,0));
-            dist += DrawPooint(r, new Vector3(0,1,1));
-            dist += DrawPooint(r, new Vector3(1,0,0));
-            dist += DrawPooint(r, new Vector3(1,0,1));
-            dist += DrawPooint(r, new Vector3(1,1,0));
-            dist += DrawPooint(r, new Vector3(1,1,1));
+            float radious = .5f;
+            dist += DrawDebugSphere(r, new Vector3(0, 0, 2), radious);
+            dist += DrawDebugSphere(r, new Vector3(0, 0, 4), radious);
+            dist += DrawDebugSphere(r, new Vector3(0, 2, 2), radious);
+            dist += DrawDebugSphere(r, new Vector3(0, 2, 4), radious);
+            dist += DrawDebugSphere(r, new Vector3(2, 0, 2), radious);
+            dist += DrawDebugSphere(r, new Vector3(2, 0, 4), radious);
+            dist += DrawDebugSphere(r, new Vector3(2, 2, 2), radious);
+            dist += DrawDebugSphere(r, new Vector3(2, 2, 4), radious);
 
             color = Get255Color(dist);
         }
@@ -71,10 +72,24 @@ namespace Engine3D
         public float DrawPooint(Ray ray, Vector3 point)
         {
             float dist = DistanceToRay(ray, point);
-            if (dist > .1)
+            if (dist > 8)
                 return 0;
 
             return 1;
+        }
+
+        public float DrawDebugSphere(Ray ray,Vector3 center,float radious)
+        {
+            float t = Vector3.Dot(center - ray.origin, ray.direction);
+            Vector3 point = ray.origin + ray.direction * t;
+
+            float y = (center - point).Length();
+            if (y < radious)
+            {
+                return 1;
+            }
+
+            return 0;
         }
         
         public Color Get255Color(float value)
