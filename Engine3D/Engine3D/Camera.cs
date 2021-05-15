@@ -43,7 +43,7 @@ namespace Engine3D
         private void Trace(out Color color,int screenX,int screenY)
         {
             Vector2 uv = (new Vector2(screenX,screenY) - .5f*(new Vector2(_canvas.Width,_canvas.Height)))/_canvas.Height;
-            color = Color.Black;
+            /*color = Color.Black;
 
             Vector3 rayInterception = centerOfScreen + uv.X * localRight + uv.Y * localUp;
             
@@ -61,7 +61,9 @@ namespace Engine3D
             dist += DrawDebugSphere(r, new Vector3(2, 2, 2), radious);
             dist += DrawDebugSphere(r, new Vector3(2, 2, 4), radious);
 
-            color = Get255Color(dist);
+            color = Get255Color(dist);*/
+            uv = new Vector2(screenX, screenY) / new Vector2(_canvas.Width, _canvas.Height);
+            color = Get255Color(uv.X,1-uv.Y);
         }
 
         public float DistanceToRay(Ray ray, Vector3 point)
@@ -98,6 +100,16 @@ namespace Engine3D
             if (float.IsNaN(value))
                 validC = 0;
             return Color.FromArgb((int) (validC* 255), (int) (validC*255), (int)(validC*255));
+        }
+        public Color Get255Color(float r,float g)
+        {
+            float vR = Math.Clamp(r, 0, 1);
+            if (float.IsNaN(r))
+                vR = 0;
+            float vG = Math.Clamp(g, 0, 1);
+            if (float.IsNaN(g))
+                vG = 0;
+            return Color.FromArgb((int) (vR* 255), (int) (vG*255), 0);
         }
     }
 }
