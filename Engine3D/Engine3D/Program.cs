@@ -17,7 +17,8 @@ namespace Engine3D
             string url = @"C:\Users\danvu\Documents\GitHubPP\BmpVisualizer\Engine3D\Engine3D\bin\Debug\net5.0\myimg.png";
             Bitmap b = new Bitmap(1280,720);
             performanceTest.Start();
-            Camera cam = new Camera(new Vector3(15, 10, -20), new Vector3(0,0,2), 2,b);
+            Camera cam = new Camera(new Vector3(0, 0, -10), new Vector3(0,0,1), 2,b);
+            cam.MyFace = new Face(new Vector3(0, 0, 0), new Vector3(0, -3, 0), new Vector3(-1, 0, 0));
             cam.Draw();
             performanceTest.Stop();
             drawTime = performanceTest.Elapsed.TotalMilliseconds;

@@ -41,8 +41,8 @@ namespace Engine3D
             Vector3 sphere2 = new Vector3(0, 0, 6);
             float radious = 1;
 
-            float t = Vector3.Dot(sphere - r.origin, r.direction);
-            Vector3 point = r.origin + r.direction * t;
+            float t = Vector3.Dot(sphere - r.origin, r.dir);
+            Vector3 point = r.origin + r.dir * t;
             float y = (sphere - point).Length();
             if (y < radious)
             {
