@@ -19,7 +19,7 @@ namespace Engine3D
 
             Camera cam = new (new Vector3(0, 0, -10), new Vector3(0, 0, 1), 1, b)
             {
-                MyFace = new Face(new Vector3(0, 1, 0), new Vector3(2, -3, 0), new Vector3(-1, 0, 0))
+                MyFace = new Face(new Vector3(0, 1, 1), new Vector3(2, -3, 0), new Vector3(-1, 0, 0))
             };
             cam.Draw();
 

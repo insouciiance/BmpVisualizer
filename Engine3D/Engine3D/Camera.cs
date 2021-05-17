@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Numerics;
 
 namespace Engine3D
@@ -11,6 +13,7 @@ namespace Engine3D
 
         private readonly Vector3 _localRight;
         private readonly Vector3 _localUp;
+        private readonly Vector3 _lookDirection;
 
         public Vector3 CenterOfScreen { get; }
 
@@ -22,10 +25,10 @@ namespace Engine3D
             _cameraOrigin = cameraOrigin;
             _canvas = canvas;
 
-            Vector3 lookDirection = Vector3.Normalize(lookAtPoint - _cameraOrigin);
-            _localRight = Vector3.Cross(lookDirection, new Vector3(0, 1, 0));
-            _localUp = Vector3.Cross(lookDirection, _localRight);
-            CenterOfScreen = cameraOrigin + lookDirection * distanceToScreen;
+            _lookDirection = Vector3.Normalize(lookAtPoint - _cameraOrigin);
+            _localRight = Vector3.Cross(_lookDirection, new Vector3(0, 1, 0));
+            _localUp = Vector3.Cross(_lookDirection, _localRight);
+            CenterOfScreen = cameraOrigin + _lookDirection * distanceToScreen;
         }
 
         public void Draw()
@@ -66,7 +69,12 @@ namespace Engine3D
             dist += DrawDebugSphere(r, new Vector3(2, 2, 4), radious);
 
             color = Get255Color(dist);*/
-            color = Get255Color(RayFaceInterception(r, MyFace, out float t) ? 1 : 0);
+            (float min, float max) distanceRange = GetDistanceRange(new Ray(_cameraOrigin, _lookDirection), MyFace);
+            bool intercepted = RayFaceInterception(r, MyFace, out float t);
+
+            float perpendicularDistance = Vector3.Dot(_lookDirection, r.dir * t);
+
+            color = Get255Color(intercepted ? perpendicularDistance : 0, distanceRange.max, distanceRange.min);
             // uv = new Vector2(screenX, screenY) / new Vector2(_canvas.Width, _canvas.Height);
             //color = Get255Color(uv.X,uv.Y);
 
@@ -148,6 +156,19 @@ namespace Engine3D
             return Vector3.Dot(e2, qvec) * inv_det;
         }
 
+        private (float, float) GetDistanceRange(Ray cameraNormal, Face f)
+        {
+            List<float> distances = new();
+
+            foreach (Vector3 point in f.Points)
+            {
+                float distance = Vector3.Dot(point - cameraNormal.origin, cameraNormal.dir);
+                distances.Add(distance);
+            }
+
+            return (distances.Min(), distances.Max());
+        }
+
         public static Vector3 GetPlaneNormal(Vector3 p1, Vector3 p2, Vector3 p3)
         {
             Vector3 dir1 = p2 - p1;
@@ -178,22 +199,27 @@ namespace Engine3D
             return 0;
         }
 
-        public Color Get255Color(float value)
+        public Color Get255Color(float value, float min, float max)
         {
-            float validC = Math.Clamp(value, 0, 1);
-            if (float.IsNaN(value))
-                validC = 0;
-            return Color.FromArgb((int)(validC * 255), (int)(validC * 255), (int)(validC * 255));
-        }
-        public Color Get255Color(float r, float g)
-        {
-            float vR = Math.Clamp(r, 0, 1);
-            if (float.IsNaN(r))
-                vR = 0;
-            float vG = Math.Clamp(g, 0, 1);
-            if (float.IsNaN(g))
-                vG = 0;
-            return Color.FromArgb((int)(vR * 255), (int)(vG * 255), 0);
+            float clampedValue;
+
+            if (value == 0)
+            {
+                clampedValue = 0;
+            }
+            else
+            {
+                if (min != max)
+                {
+                    clampedValue = (value - min) / (max - min);
+                }
+                else
+                {
+                    clampedValue = value / min;
+                }
+            }
+
+            return Color.FromArgb(0, (int)(clampedValue * 255), (int)(clampedValue * 255));
         }
     }
 }
