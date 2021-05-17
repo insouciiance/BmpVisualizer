@@ -11,21 +11,27 @@ namespace Engine3D
     {
         static void Main(string[] args)
         {
-            Stopwatch performanceTest = new Stopwatch();
-            double drawTime = 0;
-            double saveTime = 0;
-            string url = @"C:\Users\danvu\Documents\GitHubPP\BmpVisualizer\Engine3D\Engine3D\bin\Debug\net5.0\myimg.png";
-            Bitmap b = new Bitmap(1280,720);
+            Stopwatch performanceTest = new ();
+            string url = @"D:/my.bmp";
+            Bitmap b = new (1280,720);
+
             performanceTest.Start();
-            Camera cam = new Camera(new Vector3(0, 0, -10), new Vector3(0,0,1), 2,b);
-            cam.MyFace = new Face(new Vector3(0, 0, 0), new Vector3(0, -3, 0), new Vector3(-1, 0, 0));
+
+            Camera cam = new (new Vector3(0, 0, -10), new Vector3(0, 0, 1), 1, b)
+            {
+                MyFace = new Face(new Vector3(0, 1, 1), new Vector3(2, -3, 0), new Vector3(-1, 0, 0))
+            };
             cam.Draw();
+
             performanceTest.Stop();
-            drawTime = performanceTest.Elapsed.TotalMilliseconds;
+
+            double drawTime = performanceTest.Elapsed.TotalMilliseconds;
             performanceTest.Restart();
+
             b.Save(url,ImageFormat.Png);
+
             performanceTest.Stop();
-            saveTime = performanceTest.Elapsed.TotalMilliseconds;
+            double saveTime = performanceTest.Elapsed.TotalMilliseconds;
             
             Console.WriteLine($"Performance: draw time: {drawTime}ms  save time: {saveTime}ms");
         }
