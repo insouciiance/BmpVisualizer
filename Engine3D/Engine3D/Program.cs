@@ -9,6 +9,12 @@ namespace Engine3D
 {
     class Program
     {
+        
+        /*
+         * Todo Fix camera uv + rotation
+         * Todo Fix looking for interception code
+         * 
+         */
         static void Main(string[] args)
         {
             Stopwatch performanceTest = new Stopwatch();
@@ -18,7 +24,7 @@ namespace Engine3D
             Bitmap b = new Bitmap(1280,720);
             performanceTest.Start();
             Camera cam = new Camera(new Vector3(0, 0, -10), new Vector3(0,0,1), 2,b);
-            cam.MyFace = new Face(new Vector3(0, 0, 0), new Vector3(0, -3, 0), new Vector3(-1, 0, 0));
+            cam.MyFace = new Face(new Vector3(0, 0, 0), new Vector3(2, -3, 0), new Vector3(-1, 0, 0));
             cam.Draw();
             performanceTest.Stop();
             drawTime = performanceTest.Elapsed.TotalMilliseconds;

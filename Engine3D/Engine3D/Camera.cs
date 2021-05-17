@@ -48,7 +48,8 @@ namespace Engine3D
             Vector2 uv = (new Vector2(screenX,screenY) - .5f*(new Vector2(_canvas.Width,_canvas.Height)))/_canvas.Height;
             color = Color.Black;
 
-            Vector3 rayInterception = centerOfScreen + uv.X * localRight + -uv.Y * localUp;
+            //Vector3 rayInterception = centerOfScreen + uv.X * localRight + -uv.Y * localUp;
+            Vector3 rayInterception = new Vector3(uv.X,uv.Y,_distanceToScreen) * 100 - _cameraOrigin;
             
             Ray r = new Ray(_cameraOrigin, Vector3.Normalize(rayInterception - _cameraOrigin));
 
@@ -79,7 +80,7 @@ namespace Engine3D
 
         public bool RayFaceInterseption(Ray ray, Face face,out float t)
         {
-            Vector3 faceNormal = GetPlaneNormal(face.Points[0], face.Points[1], face.Points[2]);
+            Vector3 faceNormal = GetPlaneNormal(face.Point1, face.Point2, face.Point3);
             faceNormal = Vector3.Normalize(faceNormal);
             // check if ray and plane are parallel ?
             t = -1;
@@ -88,7 +89,7 @@ namespace Engine3D
                 return false; // they are parallel so they don't intersect !
             
             // compute d parameter using equation 2
-            float d = Vector3.Dot(faceNormal,face.Points[0]); 
+            float d = Vector3.Dot(faceNormal,face.Point1); 
           //  Console.WriteLine("d");
             // compute t (equation 3)
             t = (Vector3.Dot(faceNormal,ray.origin) + d) / NdotRayDirection; 
@@ -102,20 +103,20 @@ namespace Engine3D
             Vector3 C; // vector perpendicular to triangle's plane 
            // Console.WriteLine("d1");
             // edge 0
-            Vector3 edge0 = face.Points[1] - face.Points[0]; 
-            Vector3 vp0 = P - face.Points[0]; 
+            Vector3 edge0 = face.Point2 - face.Point1; 
+            Vector3 vp0 = P - face.Point1; 
             C = Vector3.Cross(edge0,vp0);
             if (Vector3.Dot(faceNormal,C) < 0) return false; // P is on the right side 
            // Console.WriteLine("d");
             // edge 1
-            Vector3 edge1 = face.Points[2] - face.Points[1]; 
-            Vector3 vp1 = P - face.Points[1]; 
+            Vector3 edge1 = face.Point3 - face.Point2; 
+            Vector3 vp1 = P - face.Point2; 
             C = Vector3.Cross(edge1,vp1);
             if (Vector3.Dot(faceNormal,C) < 0)  return false; // P is on the right side 
            // Console.WriteLine("d");
             // edge 2
-            Vector3 edge2 = face.Points[0] - face.Points[2]; 
-            Vector3 vp2 = P - face.Points[2]; 
+            Vector3 edge2 = face.Point1 - face.Point3; 
+            Vector3 vp2 = P - face.Point3; 
             C = Vector3.Cross(edge2,vp2);
             if (Vector3.Dot(faceNormal,C) < 0) return false; // P is on the right side; 
  
