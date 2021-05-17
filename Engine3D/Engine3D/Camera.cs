@@ -48,6 +48,7 @@ namespace Engine3D
             Color color = new();
 
             Vector2 uv = (new Vector2(screenX, screenY) - .5f * new Vector2(_canvas.Width, _canvas.Height)) / _canvas.Height;
+            uv.X *= -1;
             color = Color.Black;
 
             Vector3 rayInterception = CenterOfScreen + uv.X * _localRight + -uv.Y * _localUp;
@@ -74,7 +75,7 @@ namespace Engine3D
 
             float perpendicularDistance = Vector3.Dot(_lookDirection, r.dir * t);
 
-            color = Get255Color(intercepted ? perpendicularDistance : 0, distanceRange.max, distanceRange.min);
+            color = Get255Color(intercepted ? perpendicularDistance : 0, distanceRange.min, distanceRange.max);
             // uv = new Vector2(screenX, screenY) / new Vector2(_canvas.Width, _canvas.Height);
             //color = Get255Color(uv.X,uv.Y);
 
@@ -211,11 +212,11 @@ namespace Engine3D
             {
                 if (min != max)
                 {
-                    clampedValue = (value - min) / (max - min);
+                    clampedValue = 1 - (value - min) / (max - min);
                 }
                 else
                 {
-                    clampedValue = value / min;
+                    clampedValue = 1 - value / min;
                 }
             }
 
