@@ -88,7 +88,7 @@ namespace Engine3D
 
         public bool RayFaceInterception(Ray ray, Face face, out float t)
         {
-            Vector3 faceNormal = GetPlaneNormal(face.Points[0], face.Points[1], face.Points[2]);
+            Vector3 faceNormal = GetPlaneNormal(face.Point1, face.Point2, face.Point3);
             faceNormal = Vector3.Normalize(faceNormal);
 
             t = CalculateDistanceToTriangle(ray.origin, ray.dir, face.Points[0], face.Points[1], face.Points[2]);

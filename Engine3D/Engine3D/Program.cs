@@ -9,6 +9,12 @@ namespace Engine3D
 {
     class Program
     {
+        
+        /*
+         * Todo Fix camera uv + rotation
+         * Todo Fix looking for interception code
+         * 
+         */
         static void Main(string[] args)
         {
             Stopwatch performanceTest = new ();
