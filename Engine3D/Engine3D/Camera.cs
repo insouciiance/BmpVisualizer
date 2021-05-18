@@ -64,9 +64,9 @@ namespace Engine3D
 
         private MyColor LightTrace(Vector3 point, Vector3 faceNormal)
         {
-            MyColor color = MyColor.Black;
+            MyColor? color = null;
 
-            foreach (var light in Lights)
+            foreach (Light light in Lights)
             {
                 Ray lightTrace = new(point, Vector3.Normalize(light.Position - point));
                 float dotProduct = Vector3.Dot(faceNormal, lightTrace.dir);
@@ -76,11 +76,13 @@ namespace Engine3D
                     float colorVal = dotProduct * light.Intensity / lightDistSqr;
                     MyColor lColor = light.Color;
                     lColor.Multiply(new MyColor(colorVal, 1f));
-                    color.Blend(lColor, .5f);
+
+                    color ??= lColor;
+                    color.Value.Blend(lColor, .5f);
                 }
             }
 
-            return color;
+            return color ?? MyColor.Black;
         }
 
         private bool RayFaceInterception(Ray ray, Mesh mesh, out float distance, out Vector3 normal)
