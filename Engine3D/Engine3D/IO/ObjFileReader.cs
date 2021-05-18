@@ -39,7 +39,7 @@ namespace Engine3D.IO
                     string[] splitValues = line
                         .Remove(0, 1)
                         .Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                        .Select(s => s.Split("//").First())
+                        .Select(s => s.Split("/").First())
                         .ToArray();
                     int[] parsedVertices = splitValues.Select(int.Parse).ToArray();
 

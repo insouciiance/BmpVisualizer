@@ -33,21 +33,66 @@ namespace Engine3D
 
         public void Draw()
         {
+            float[,] colorsMatrix = new float[_canvas.Height, _canvas.Width];
+
             for (int y = 0; y < _canvas.Height; y++)
             {
                 for (int x = 0; x < _canvas.Width; x++)
                 {
-                    var c = Trace(x, y);
-                    _canvas.SetPixel(x, y, c.ToColor());
+                    float colorVal = Trace(x, y);
+                    colorsMatrix[y, x] = colorVal;
+                }
+            }
+
+            ScaleValues(0, 1);
+
+            for (int y = 0; y < _canvas.Height; y++)
+            {
+                for (int x = 0; x < _canvas.Width; x++)
+                {
+                    float pixelColorValue = colorsMatrix[y, x];
+                    MyColor pixelColor = new MyColor(pixelColorValue, 1);
+                    _canvas.SetPixel(x, y, pixelColor.ToColor());
+                }
+            }
+
+            void ScaleValues(float lower, float upper)
+            {
+                float minColor = colorsMatrix[0, 0];
+                float maxColor = colorsMatrix[0, 0];
+
+                for (int y = 0; y < _canvas.Height; y++)
+                {
+                    for (int x = 0; x < _canvas.Width; x++)
+                    {
+                        if (colorsMatrix[y, x] < minColor)
+                        {
+                            minColor = colorsMatrix[y, x];
+                        }
+
+                        if (colorsMatrix[y, x] > maxColor)
+                        {
+                            maxColor = colorsMatrix[y, x];
+                        }
+                    }
+                }
+
+                for (int y = 0; y < _canvas.Height; y++)
+                {
+                    for (int x = 0; x < _canvas.Width; x++)
+                    {
+                        colorsMatrix[y, x] =
+                            lower + (colorsMatrix[y, x] - minColor) / (maxColor - minColor) * (upper - lower);
+                    }
                 }
             }
         }
 
-        private MyColor Trace(int screenX, int screenY)
+        private float Trace(int screenX, int screenY)
         {
             Vector2 uv = (new Vector2(screenX, screenY) - .5f * new Vector2(_canvas.Width, _canvas.Height)) /
                          _canvas.Height;
-            MyColor color = MyColor.Black;
+            float colorVal = 0;
 
             Vector3 rayInterception = CenterOfScreen + uv.X * _localRight + -uv.Y * _localUp;
             Ray cameraTrace = new(_cameraOrigin, Vector3.Normalize(rayInterception - _cameraOrigin));
@@ -57,12 +102,12 @@ namespace Engine3D
             if (intercepted)
             {
                 Vector3 interceptionPoint = cameraTrace.dir * dist + cameraTrace.origin;
-                color = LightTrace(interceptionPoint, faceNormal);
+                colorVal = LightTrace(interceptionPoint, faceNormal);
             }
-            return color;
+            return colorVal;
         }
 
-        private MyColor LightTrace(Vector3 point, Vector3 faceNormal)
+        private float LightTrace(Vector3 point, Vector3 faceNormal)
         {
             Ray lightTrace = new (Light, Vector3.Normalize(point - Light));
             float dotProduct = Vector3.Dot(faceNormal, -lightTrace.dir);
@@ -74,9 +119,7 @@ namespace Engine3D
                 colorVal = dotProduct / distanceSquared;
             }
 
-            MyColor color = new (colorVal, colorVal, colorVal);
-
-            return color;
+            return colorVal;
         }
 
         private bool RayFaceInterception(Ray ray, Mesh mesh, out float distance, out Vector3 normal)
