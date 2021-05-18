@@ -4,6 +4,8 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Numerics;
+using System.Threading.Tasks;
+using Engine3D.IO;
 
 namespace Engine3D
 {
@@ -15,17 +17,21 @@ namespace Engine3D
          * Todo Fix looking for interception code
          * 
          */
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
-            Stopwatch performanceTest = new ();
-            string url = @"D:/my.bmp";
-            Bitmap b = new (1280,720);
+            string meshUrl = "cow.obj";
+            ObjFileReader reader = new(meshUrl);
+            Mesh mesh = await reader.ReadAsync();
+
+            Stopwatch performanceTest = new();
+            string url = @"D:/my3.png";
+            Bitmap b = new(160, 90);
 
             performanceTest.Start();
 
-            Camera cam = new (new Vector3(0, 0, -10), new Vector3(0, 0, 1), 1, b)
+            Camera cam = new(new Vector3(.7f, .7f, .3f), new Vector3(0, 0, 0), 1, b)
             {
-                MyFace = new Face(new Vector3(0, 1, 1), new Vector3(2, -3, 0), new Vector3(-1, 0, 0))
+                Mesh = mesh
             };
             cam.Draw();
 
@@ -34,11 +40,11 @@ namespace Engine3D
             double drawTime = performanceTest.Elapsed.TotalMilliseconds;
             performanceTest.Restart();
 
-            b.Save(url,ImageFormat.Png);
+            b.Save(url, ImageFormat.Png);
 
             performanceTest.Stop();
             double saveTime = performanceTest.Elapsed.TotalMilliseconds;
-            
+
             Console.WriteLine($"Performance: draw time: {drawTime}ms  save time: {saveTime}ms");
         }
     }
