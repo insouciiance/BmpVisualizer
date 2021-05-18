@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Numerics;
@@ -30,7 +31,7 @@ namespace Engine3D.IO
                 if (line.StartsWith("v "))
                 {
                     string[] splitValues = line.Remove(0, 1).Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                    float[] parsedFloats = splitValues.Select(float.Parse).ToArray();
+                    float[] parsedFloats = splitValues.Select((f)=>float.Parse(f, CultureInfo.InvariantCulture)).ToArray();
                     Vector3 point = new(parsedFloats[0], parsedFloats[1], parsedFloats[2]);
                     points.Add(point);
                 }

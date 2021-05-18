@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Numerics;
+using System.Reflection.Metadata;
 
 namespace Engine3D
 {
@@ -17,8 +18,20 @@ namespace Engine3D
         public Vector3 CenterOfScreen { get; }
 
         public Mesh Mesh { get; init; }
+
+        private Tree tree;
         public List<Light> Lights { get; set; }
 
+        public Tree ConstructTree(Mesh mesh)
+        {
+            Tree tree = new Tree();
+            for (int i = 0; i < mesh.Faces.Length; i++)
+            {
+                tree.Add(mesh.Faces[i]);
+            }
+
+            return tree;
+        }
         public Camera(Vector3 cameraOrigin, Vector3 lookAtPoint, float distanceToScreen, Bitmap canvas)
         {
             _cameraOrigin = cameraOrigin;
@@ -32,6 +45,7 @@ namespace Engine3D
 
         public void Draw()
         {
+            tree = ConstructTree(Mesh);
             for (int y = 0; y < _canvas.Height; y++)
             {
                 for (int x = 0; x < _canvas.Width; x++)
@@ -51,7 +65,7 @@ namespace Engine3D
             Vector3 rayInterception = CenterOfScreen + uv.X * _localRight + -uv.Y * _localUp;
             Ray cameraTrace = new(_cameraOrigin, Vector3.Normalize(rayInterception - _cameraOrigin));
 
-            bool intercepted = RayFaceInterception(cameraTrace, Mesh, out float dist, out Vector3 faceNormal);
+            bool intercepted = RayFaceInterception(cameraTrace, tree, out float dist, out Vector3 faceNormal);
 
             if (intercepted)
             {
@@ -83,12 +97,36 @@ namespace Engine3D
             return color;
         }
 
-        private bool RayFaceInterception(Ray ray, Mesh mesh, out float distance, out Vector3 normal)
+        private List<Face> Search(Ray ray, Tree tree)
+        {
+            List<Face> faces = new ();
+            Tree current = tree;
+            while (current.IsParent)
+            {
+                if (ray.origin.X < current.xMax && ray.origin.Y < current.yMax && ray.origin.Z < current.zMax &&
+                    ray.origin.X > current.xMin && ray.origin.Y > current.yMin && ray.origin.Z > current.zMin)
+                {
+                    current = current.Child1;
+                }
+                else
+                {
+                    current = current.Child2;
+                }
+            }
+
+            for (int i = 0; i < current.Faces.Count; i++)
+            {
+                faces.Add(current.Faces[i]);
+            }
+
+            return faces;
+        }
+        private bool RayFaceInterception(Ray ray, Tree tree, out float distance, out Vector3 normal)
         {
             distance = float.PositiveInfinity;
             normal = Vector3.Zero;
 
-            foreach (Face face in mesh.Faces)
+            foreach (Face face in Search(ray, tree))
             {
                 float tempDistance = CalculateDistanceToTriangle(
                     ray.origin,
