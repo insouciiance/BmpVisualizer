@@ -18,7 +18,6 @@ namespace Engine3D
         public Vector3 CenterOfScreen { get; }
 
         public Mesh Mesh { get; init; }
-        public Face MyFace { get; init; }
 
         public Camera(Vector3 cameraOrigin, Vector3 lookAtPoint, float distanceToScreen, Bitmap canvas)
         {
@@ -48,39 +47,16 @@ namespace Engine3D
             Vector2 uv = (new Vector2(screenX, screenY) - .5f * new Vector2(_canvas.Width, _canvas.Height)) / _canvas.Height;
 
             Vector3 rayInterception = CenterOfScreen + uv.X * _localRight + -uv.Y * _localUp;
-
             Ray r = new(_cameraOrigin, Vector3.Normalize(rayInterception - _cameraOrigin));
 
-            /*
-            float dist = 0;
-            float radious = .5f;
-            dist += DrawDebugSphere(r, new Vector3(0, 0, 2), radious);
-            dist += DrawDebugSphere(r, new Vector3(0, 0, 4), radious);
-            dist += DrawDebugSphere(r, new Vector3(0, 2, 2), radious);
-            dist += DrawDebugSphere(r, new Vector3(0, 2, 4), radious);
-            dist += DrawDebugSphere(r, new Vector3(2, 0, 2), radious);
-            dist += DrawDebugSphere(r, new Vector3(2, 0, 4), radious);
-            dist += DrawDebugSphere(r, new Vector3(2, 2, 2), radious);
-            dist += DrawDebugSphere(r, new Vector3(2, 2, 4), radious);
-
-            color = Get255Color(dist);*/
             (float min, float max) distanceRange = GetDistanceRange(new Ray(_cameraOrigin, _lookDirection), Mesh);
             bool intercepted = RayFaceInterception(r, Mesh, out float t);
 
             float perpendicularDistance = Vector3.Dot(_lookDirection, r.dir * t);
 
             Color color = Get255Color(intercepted ? perpendicularDistance : 0, distanceRange.min, distanceRange.max);
-            // uv = new Vector2(screenX, screenY) / new Vector2(_canvas.Width, _canvas.Height);
-            //color = Get255Color(uv.X,uv.Y);
-
             return color;
         }
-
-        public float DistanceToRay(Ray ray, Vector3 point)
-        {
-            return Vector3.Cross(point - ray.dir, ray.dir).Length() / ray.dir.Length();
-        }
-
         public bool RayFaceInterception(Ray ray, Mesh mesh, out float t)
         {
             t = -1;
@@ -131,7 +107,6 @@ namespace Engine3D
 
             return false;
         }
-
         // Möller–Trumbore intersection algorithm
         private float CalculateDistanceToTriangle(Vector3 orig, Vector3 dir, Vector3 v0, Vector3 v1, Vector3 v2)
         {
@@ -164,7 +139,6 @@ namespace Engine3D
 
             return Vector3.Dot(e2, qvec) * inv_det;
         }
-
         private (float, float) GetDistanceRange(Ray cameraNormal, Mesh m)
         {
             List<float> distances = new();
@@ -180,24 +154,13 @@ namespace Engine3D
 
             return (distances.Min(), distances.Max());
         }
-
-        public static Vector3 GetPlaneNormal(Vector3 p1, Vector3 p2, Vector3 p3)
+        private static Vector3 GetPlaneNormal(Vector3 p1, Vector3 p2, Vector3 p3)
         {
             Vector3 dir1 = p2 - p1;
             Vector3 dir2 = p3 - p1;
             return Vector3.Cross(dir1, dir2);
         }
-
-        public float DrawPoint(Ray ray, Vector3 point)
-        {
-            float dist = DistanceToRay(ray, point);
-            if (dist > 8)
-                return 0;
-
-            return 1;
-        }
-
-        public float DrawDebugSphere(Ray ray, Vector3 center, float radius)
+        private float DrawDebugSphere(Ray ray, Vector3 center, float radius)
         {
             float t = Vector3.Dot(center - ray.origin, ray.dir);
             Vector3 point = ray.origin + ray.dir * t;
@@ -210,8 +173,7 @@ namespace Engine3D
 
             return 0;
         }
-
-        public Color Get255Color(float value, float min, float max)
+        private Color Get255Color(float value, float min, float max)
         {
             float clampedValue;
 
