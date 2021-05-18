@@ -64,13 +64,14 @@ namespace Engine3D
 
         private MyColor LightTrace(Vector3 point, Vector3 faceNormal)
         {
-            Ray lightTrace = new (point, Vector3.Normalize(point - Light));
+            Ray lightTrace = new (Light, Vector3.Normalize(point - Light));
             float dotProduct = Vector3.Dot(faceNormal, -lightTrace.dir);
             float colorVal = 0;
             
             if (dotProduct > 0)
             {
-                colorVal = dotProduct;
+                float distanceSquared = Vector3.DistanceSquared(lightTrace.origin, point);
+                colorVal = dotProduct / distanceSquared;
             }
 
             MyColor color = new (colorVal, colorVal, colorVal);

@@ -26,8 +26,8 @@ namespace Engine3D
             Mesh mesh = await reader.ReadAsync();
 
             Stopwatch performanceTest = new();
-            string url = @"D:/my6.png";
-            Bitmap b = new(160, 90);
+            string url = @"D:/my9.png";
+            Bitmap b = new(80, 45);
 
             performanceTest.Start();
 
