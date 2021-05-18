@@ -31,10 +31,10 @@ namespace Engine3D
 
             performanceTest.Start();
 
-            Camera cam = new(new Vector3(0, -1.5f, 0), new Vector3(0, 0, 0), 1, b)
+            Camera cam = new(new Vector3(0, -1, 0), new Vector3(0, 0, 0), 1, b)
             {
                 Mesh = mesh,
-                Lights = new List<Light>{new (new Vector3(0, -1.5f, 0), MyColor.White, 100)}
+                Lights = new List<Light>{new (new Vector3(0, -1, 0), MyColor.White, 1)}
             };
             cam.Draw();
 
