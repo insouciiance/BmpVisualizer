@@ -36,8 +36,8 @@ namespace Engine3D.Debug
             new Vector3(1, 0, 0),
             new Vector3(.5f, 1, .5f),
         }, new[] {
-            0, 1, 3, //bottom
-            1, 2, 3,
+            3, 1, 0, //bottom
+            3, 2, 1, //bottom
             1, 4, 0, 
             2, 4, 1,
             3, 4, 2, 

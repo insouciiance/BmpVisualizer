@@ -52,60 +52,50 @@ namespace Engine3D
             Vector3 rayInterception = CenterOfScreen + uv.X * _localRight + -uv.Y * _localUp;
             Ray cameraTrace = new(_cameraOrigin, Vector3.Normalize(rayInterception - _cameraOrigin));
 
-            // (float min, float max) distanceRange = GetDistanceRange(new Ray(_cameraOrigin, _lookDirection), Mesh);
-
             bool intercepted = RayFaceInterception(cameraTrace, Mesh, out float dist, out Vector3 faceNormal);
 
             if (intercepted)
             {
                 Vector3 interceptionPoint = cameraTrace.dir * dist + cameraTrace.origin;
-                foreach (var light in Lights)
-                {
-                    Ray lightTrace = new Ray(interceptionPoint, Vector3.Normalize(light.Position - interceptionPoint));
-                    float dotProduct = Vector3.Dot(faceNormal, lightTrace.dir);
-                    if (dotProduct > 0)
-                    {
-                        if (color.Equals(MyColor.Black))
-                        {
-                            color = MyColor.White;
-                        }
-                        float lightDistSqr = Vector3.DistanceSquared(interceptionPoint, light.Position);
-                        float colorVal = dotProduct * light.Intensity / lightDistSqr;
-                        var lColor = light.LightColor;
-                        lColor.Multiply(new MyColor(colorVal, 1f));
-                        color.Blend(lColor,.5f);
-                    }
-                    
-                }
-
-                
-                /*int colorMaped = (int) (Math.Clamp(colorVal,0,1) * 255);
-                color = Color.FromArgb(colorMaped,colorMaped,colorMaped);*/
-                // float perpendicularDistance = Vector3.Dot(_lookDirection, r.dir * dist);
+                color = LightTrace(interceptionPoint,faceNormal);
             }
-
-            // color = Get255Color(intercepted ? perpendicularDistance : 0, distanceRange.min, distanceRange.max);
-
             return color;
         }
 
-        public bool RayFaceInterception(Ray ray, Mesh mesh, out float distance, out Vector3 normal)
+        private MyColor LightTrace(Vector3 point,Vector3 faceNormal)
+        {
+            MyColor color = MyColor.Black;
+            foreach (var light in Lights)
+            {
+                Ray lightTrace = new Ray(point, Vector3.Normalize(light.Position - point));
+                float dotProduct = Vector3.Dot(faceNormal, lightTrace.dir);
+                if (dotProduct > 0)
+                {
+                    float lightDistSqr = Vector3.DistanceSquared(point, light.Position);
+                    float colorVal = dotProduct * light.Intensity / lightDistSqr;
+                    var lColor = light.LightColor;
+                    lColor.Multiply(new MyColor(colorVal, 1f));
+                    color.Blend(lColor,.5f);
+                }
+            }
+
+            return color;
+        }
+        
+        private bool RayFaceInterception(Ray ray, Mesh mesh, out float distance, out Vector3 normal)
         {
             distance = float.PositiveInfinity;
             normal = Vector3.Zero;
 
-            float tempDitance = -1;
             foreach (Face face in mesh.Faces)
             {
-                //Vector3 faceNormal = GetPlaneNormal(face.Points[0], face.Points[1], face.Points[2]);
-
-                tempDitance = CalculateDistanceToTriangle(ray.origin, ray.dir, face.Points[0], face.Points[1],
+                var tempDistance = CalculateDistanceToTriangle(ray.origin, ray.dir, face.Points[0], face.Points[1],
                     face.Points[2], out Vector3 faceNormal);
 
-                if (tempDitance == -1) continue;
-                if (tempDitance < distance)
+                if (tempDistance == -1) continue;
+                if (tempDistance < distance)
                 {
-                    distance = tempDitance;
+                    distance = tempDistance;
                     normal = faceNormal;
                 }
             }
@@ -163,49 +153,11 @@ namespace Engine3D
 
             return (distances.Min(), distances.Max());
         }
-
         private static Vector3 GetPlaneNormal(Vector3 p1, Vector3 p2, Vector3 p3)
         {
             Vector3 dir1 = p2 - p1;
             Vector3 dir2 = p3 - p1;
             return Vector3.Cross(dir1, dir2);
-        }
-
-        private float DrawDebugSphere(Ray ray, Vector3 center, float radius)
-        {
-            float t = Vector3.Dot(center - ray.origin, ray.dir);
-            Vector3 point = ray.origin + ray.dir * t;
-
-            float y = (center - point).Length();
-            if (y < radius)
-            {
-                return 1;
-            }
-
-            return 0;
-        }
-
-        private Color Get255Color(float value, float min, float max)
-        {
-            float clampedValue;
-
-            if (value == 0)
-            {
-                clampedValue = 0;
-            }
-            else
-            {
-                if (min != max)
-                {
-                    clampedValue = 1 - (value - min) / (max - min);
-                }
-                else
-                {
-                    clampedValue = 1 - value / min;
-                }
-            }
-
-            return Color.FromArgb((int) (clampedValue * 255), (int) (clampedValue * 255), (int) (clampedValue * 255));
         }
     }
 }

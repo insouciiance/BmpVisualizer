@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Numerics;
 using System.Threading.Tasks;
+using Engine3D.Debug;
 using Engine3D.IO;
 
 namespace Engine3D
@@ -46,6 +48,33 @@ namespace Engine3D
             double saveTime = performanceTest.Elapsed.TotalMilliseconds;
 
             Console.WriteLine($"Performance: draw time: {drawTime}ms  save time: {saveTime}ms");
+            
+            
+            //RandomCordTest(@"imgs/myimg",DebugMesh.Pyramid,20,3);
+        }
+
+        public static void RandomCordTest(string baseFileName,Mesh mesh,int count,float maxDist = 10,float minDist = 1f)
+        {
+            Random rnd = new Random();
+            Vector3 pos = Vector3.One;
+            for (int i = 0; i < count; i++)
+            {
+                pos = rnd.IncidentSphere() * (float) rnd.NextDouble(minDist,maxDist);
+                Bitmap b = new(720, 360);
+                Camera cam = new(pos, new Vector3(0, 0, 0), .4f, b)
+                {
+                    Mesh = mesh,
+                    Lights = new List<Light>
+                    {
+                        new(new Vector3(0,5,1),MyColor.Red,50),
+                        new(new Vector3(2,2,5),MyColor.Green,50),
+                        new(new Vector3(0,-5,1),MyColor.Blue,50),
+                    }
+                };
+                cam.Draw();
+                Console.WriteLine($"Frame: {i} finish saving it. {count - i - 1} frames to go");
+                b.Save(baseFileName + "_" + i + ".png",ImageFormat.Png);
+            }
         }
     }
 }
