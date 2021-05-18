@@ -50,9 +50,9 @@ namespace Engine3D
 
         public MyColor(float baseColor, float a)
         {
-            _r = baseColor;
-            _g = baseColor;
-            _b = baseColor;
+            _r = Math.Clamp(baseColor, 0, 1);;
+            _g = _r;
+            _b = _r;
             this._a = a;
         }
 

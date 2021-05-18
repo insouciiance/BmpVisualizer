@@ -18,7 +18,7 @@ namespace Engine3D
         public Vector3 CenterOfScreen { get; }
 
         public Mesh Mesh { get; init; }
-        public Vector3 Light { get; set; }
+        public List<Light> Lights { get; set; }
 
         public Camera(Vector3 cameraOrigin, Vector3 lookAtPoint, float distanceToScreen, Bitmap canvas)
         {
@@ -64,17 +64,20 @@ namespace Engine3D
 
         private MyColor LightTrace(Vector3 point, Vector3 faceNormal)
         {
-            Ray lightTrace = new (Light, Vector3.Normalize(point - Light));
-            float dotProduct = Vector3.Dot(faceNormal, -lightTrace.dir);
-            float colorVal = 0;
-            
-            if (dotProduct > 0)
+            MyColor color = MyColor.Black;
+            foreach (var light in Lights)
             {
-                float distanceSquared = Vector3.DistanceSquared(lightTrace.origin, point);
-                colorVal = dotProduct / distanceSquared;
+                Ray lightTrace = new Ray(point, Vector3.Normalize(light.Position - point));
+                float dotProduct = Vector3.Dot(faceNormal, lightTrace.dir);
+                if (dotProduct > 0)
+                {
+                    float lightDistSqr = Vector3.DistanceSquared(point, light.Position);
+                    float colorVal = dotProduct * light.Intensity / lightDistSqr;
+                    var lColor = light.Color;
+                    lColor.Multiply(new MyColor(colorVal, 1f));
+                    color.Blend(lColor,.5f);
+                }
             }
-
-            MyColor color = new (colorVal, colorVal, colorVal);
 
             return color;
         }
