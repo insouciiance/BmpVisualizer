@@ -18,7 +18,7 @@ namespace Engine3D
         public Vector3 CenterOfScreen { get; }
 
         public Mesh Mesh { get; init; }
-        public List<Light> Lights;
+        public Vector3 Light { get; set; }
 
         public Camera(Vector3 cameraOrigin, Vector3 lookAtPoint, float distanceToScreen, Bitmap canvas)
         {
@@ -57,31 +57,27 @@ namespace Engine3D
             if (intercepted)
             {
                 Vector3 interceptionPoint = cameraTrace.dir * dist + cameraTrace.origin;
-                color = LightTrace(interceptionPoint,faceNormal);
+                color = LightTrace(interceptionPoint, faceNormal);
             }
             return color;
         }
 
-        private MyColor LightTrace(Vector3 point,Vector3 faceNormal)
+        private MyColor LightTrace(Vector3 point, Vector3 faceNormal)
         {
-            MyColor color = MyColor.Black;
-            foreach (var light in Lights)
+            Ray lightTrace = new (point, Vector3.Normalize(point - Light));
+            float dotProduct = Vector3.Dot(faceNormal, -lightTrace.dir);
+            float colorVal = 0;
+            
+            if (dotProduct > 0)
             {
-                Ray lightTrace = new Ray(point, Vector3.Normalize(light.Position - point));
-                float dotProduct = Vector3.Dot(faceNormal, lightTrace.dir);
-                if (dotProduct > 0)
-                {
-                    float lightDistSqr = Vector3.DistanceSquared(point, light.Position);
-                    float colorVal = dotProduct * light.Intensity / lightDistSqr;
-                    var lColor = light.LightColor;
-                    lColor.Multiply(new MyColor(colorVal, 1f));
-                    color.Blend(lColor,.5f);
-                }
+                colorVal = dotProduct;
             }
+
+            MyColor color = new (colorVal, colorVal, colorVal);
 
             return color;
         }
-        
+
         private bool RayFaceInterception(Ray ray, Mesh mesh, out float distance, out Vector3 normal)
         {
             distance = float.PositiveInfinity;
@@ -109,9 +105,12 @@ namespace Engine3D
         {
             Vector3 e1 = v1 - v0;
             Vector3 e2 = v2 - v0;
+
+            normal = Vector3.Normalize(Vector3.Cross(e1, e2));
+
             // Вычисление вектора нормали к плоскости
             Vector3 pvec = Vector3.Cross(dir, e2);
-            normal = pvec;
+
             float det = Vector3.Dot(e1, pvec);
 
             // Луч параллелен плоскости
