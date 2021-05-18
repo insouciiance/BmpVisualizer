@@ -38,9 +38,9 @@ namespace Engine3D.Debug
         }, new[] {
             0, 1, 3, //bottom
             1, 2, 3,
-            1, 4, 0, //face top
+            1, 4, 0, 
             2, 4, 1,
-            3, 4, 2, //face right
+            3, 4, 2, 
             0, 4, 3,
         });
     }

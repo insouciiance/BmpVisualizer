@@ -18,6 +18,7 @@ namespace Engine3D
         public Vector3 CenterOfScreen { get; }
 
         public Mesh Mesh { get; init; }
+        public Vector3 light { get; set; }
 
         public Camera(Vector3 cameraOrigin, Vector3 lookAtPoint, float distanceToScreen, Bitmap canvas)
         {
@@ -45,75 +46,66 @@ namespace Engine3D
         private Color Trace(int screenX, int screenY)
         {
             Vector2 uv = (new Vector2(screenX, screenY) - .5f * new Vector2(_canvas.Width, _canvas.Height)) / _canvas.Height;
-
+            Color color = Color.Black;
+            
             Vector3 rayInterception = CenterOfScreen + uv.X * _localRight + -uv.Y * _localUp;
-            Ray r = new(_cameraOrigin, Vector3.Normalize(rayInterception - _cameraOrigin));
+            Ray cameraTrace = new(_cameraOrigin, Vector3.Normalize(rayInterception - _cameraOrigin));
 
-            (float min, float max) distanceRange = GetDistanceRange(new Ray(_cameraOrigin, _lookDirection), Mesh);
-            bool intercepted = RayFaceInterception(r, Mesh, out float t);
+           // (float min, float max) distanceRange = GetDistanceRange(new Ray(_cameraOrigin, _lookDirection), Mesh);
+            
+            bool intercepted = RayFaceInterception(cameraTrace, Mesh, out float dist,out Vector3 faceNormal);
 
-            float perpendicularDistance = Vector3.Dot(_lookDirection, r.dir * t);
+            if (intercepted)
+            {
+                Vector3 interceptionPoint = cameraTrace.dir * dist + cameraTrace.origin;
+                Ray lightTrace = new Ray(interceptionPoint,Vector3.Normalize(light - interceptionPoint));
+                float dotProduct = Vector3.Dot(faceNormal, lightTrace.dir);
+                float colorVal = dotProduct >= 0 ? dotProduct / (dist * dist) : 0;
+                if (colorVal < 0)
+                {
+                    colorVal = 0;
+                }
 
-            Color color = Get255Color(intercepted ? perpendicularDistance : 0, distanceRange.min, distanceRange.max);
+                int colorMaped = (int) (Math.Clamp(colorVal,0,1) * 255);
+                color = Color.FromArgb(colorMaped,colorMaped,colorMaped);
+                // float perpendicularDistance = Vector3.Dot(_lookDirection, r.dir * dist);
+            }
+            
+           // color = Get255Color(intercepted ? perpendicularDistance : 0, distanceRange.min, distanceRange.max);
+            
             return color;
         }
-        public bool RayFaceInterception(Ray ray, Mesh mesh, out float t)
+        public bool RayFaceInterception(Ray ray, Mesh mesh, out float distance,out Vector3 normal)
         {
-            t = -1;
+            distance = float.PositiveInfinity;
+            normal = Vector3.Zero;
 
-            List<float> distances = new();
-
+            float tempDitance = -1;
             foreach (Face face in mesh.Faces)
             {
-                Vector3 faceNormal = GetPlaneNormal(face.Points[0], face.Points[1], face.Points[2]);
-                faceNormal = Vector3.Normalize(faceNormal);
+                //Vector3 faceNormal = GetPlaneNormal(face.Points[0], face.Points[1], face.Points[2]);
 
-                t = CalculateDistanceToTriangle(ray.origin, ray.dir, face.Points[0], face.Points[1], face.Points[2]);
+                tempDitance = CalculateDistanceToTriangle(ray.origin, ray.dir, face.Points[0], face.Points[1], face.Points[2], out Vector3 faceNormal);
 
-                if (t == -1) continue;
-
-                // compute the intersection point using equation 1
-                Vector3 P = ray.origin + t * ray.dir;
-
-                // Step 2: inside-outside test
-                Vector3 C; // vector perpendicular to triangle's plane 
-                // Console.WriteLine("d1");
-                // edge 0
-                Vector3 edge0 = face.Points[1] - face.Points[0];
-                Vector3 vp0 = P - face.Points[0];
-                C = Vector3.Cross(edge0, vp0);
-                if (Vector3.Dot(faceNormal, C) < 0) continue; // P is on the right side 
-                // Console.WriteLine("d");
-                // edge 1
-                Vector3 edge1 = face.Points[2] - face.Points[1];
-                Vector3 vp1 = P - face.Points[1];
-                C = Vector3.Cross(edge1, vp1);
-                if (Vector3.Dot(faceNormal, C) < 0) continue; // P is on the right side 
-                // Console.WriteLine("d");
-                // edge 2
-                Vector3 edge2 = face.Points[0] - face.Points[2];
-                Vector3 vp2 = P - face.Points[2];
-                C = Vector3.Cross(edge2, vp2);
-                if (Vector3.Dot(faceNormal, C) < 0) continue; // P is on the right side; 
-
-                distances.Add(t); // this ray hits the triangle   
+                if (tempDitance == -1) continue;
+                if (tempDitance < distance)
+                {
+                    distance = tempDitance;
+                    normal = faceNormal;
+                }
             }
-
-            if (distances.Any())
-            {
-                t = distances.Min();
-                return true;
-            }
-
-            return false;
+            
+            return !float.IsPositiveInfinity(distance);
         }
+        
         // Möller–Trumbore intersection algorithm
-        private float CalculateDistanceToTriangle(Vector3 orig, Vector3 dir, Vector3 v0, Vector3 v1, Vector3 v2)
+        private float CalculateDistanceToTriangle(Vector3 orig, Vector3 dir, Vector3 v0, Vector3 v1, Vector3 v2,out Vector3 normal)
         {
             Vector3 e1 = v1 - v0;
             Vector3 e2 = v2 - v0;
             // Вычисление вектора нормали к плоскости
             Vector3 pvec = Vector3.Cross(dir, e2);
+            normal = pvec;
             float det = Vector3.Dot(e1, pvec);
 
             // Луч параллелен плоскости
