@@ -13,86 +13,40 @@ namespace Engine3D
 
         private readonly Vector3 _localRight;
         private readonly Vector3 _localUp;
-        private readonly Vector3 _lookDirection;
 
         public Vector3 CenterOfScreen { get; }
 
         public Mesh Mesh { get; init; }
-        public Vector3 Light { get; set; }
+        public List<Light> Lights { get; set; }
 
         public Camera(Vector3 cameraOrigin, Vector3 lookAtPoint, float distanceToScreen, Bitmap canvas)
         {
             _cameraOrigin = cameraOrigin;
             _canvas = canvas;
 
-            _lookDirection = Vector3.Normalize(lookAtPoint - _cameraOrigin);
-            _localRight = Vector3.Cross(_lookDirection, new Vector3(0, 0, 1));
-            _localUp = Vector3.Cross(_localRight, _lookDirection);
-            CenterOfScreen = cameraOrigin + _lookDirection * distanceToScreen;
+            var lookDirection = Vector3.Normalize(lookAtPoint - _cameraOrigin);
+            _localRight = Vector3.Cross(lookDirection, new Vector3(0, 0, 1));
+            _localUp = Vector3.Cross(_localRight, lookDirection);
+            CenterOfScreen = cameraOrigin + lookDirection * distanceToScreen;
         }
 
         public void Draw()
         {
-            float[,] colorsMatrix = new float[_canvas.Height, _canvas.Width];
-
             for (int y = 0; y < _canvas.Height; y++)
             {
                 for (int x = 0; x < _canvas.Width; x++)
                 {
-                    float colorVal = Trace(x, y);
-                    colorsMatrix[y, x] = colorVal;
-                }
-            }
-
-            ScaleValues(0, 1);
-
-            for (int y = 0; y < _canvas.Height; y++)
-            {
-                for (int x = 0; x < _canvas.Width; x++)
-                {
-                    float pixelColorValue = colorsMatrix[y, x];
-                    MyColor pixelColor = new MyColor(pixelColorValue, 1);
-                    _canvas.SetPixel(x, y, pixelColor.ToColor());
-                }
-            }
-
-            void ScaleValues(float lower, float upper)
-            {
-                float minColor = colorsMatrix[0, 0];
-                float maxColor = colorsMatrix[0, 0];
-
-                for (int y = 0; y < _canvas.Height; y++)
-                {
-                    for (int x = 0; x < _canvas.Width; x++)
-                    {
-                        if (colorsMatrix[y, x] < minColor)
-                        {
-                            minColor = colorsMatrix[y, x];
-                        }
-
-                        if (colorsMatrix[y, x] > maxColor)
-                        {
-                            maxColor = colorsMatrix[y, x];
-                        }
-                    }
-                }
-
-                for (int y = 0; y < _canvas.Height; y++)
-                {
-                    for (int x = 0; x < _canvas.Width; x++)
-                    {
-                        colorsMatrix[y, x] =
-                            lower + (colorsMatrix[y, x] - minColor) / (maxColor - minColor) * (upper - lower);
-                    }
+                    var c = Trace(x, y);
+                    _canvas.SetPixel(x, y, c.ToColor());
                 }
             }
         }
 
-        private float Trace(int screenX, int screenY)
+        private MyColor Trace(int screenX, int screenY)
         {
             Vector2 uv = (new Vector2(screenX, screenY) - .5f * new Vector2(_canvas.Width, _canvas.Height)) /
                          _canvas.Height;
-            float colorVal = 0;
+            MyColor color = MyColor.Black;
 
             Vector3 rayInterception = CenterOfScreen + uv.X * _localRight + -uv.Y * _localUp;
             Ray cameraTrace = new(_cameraOrigin, Vector3.Normalize(rayInterception - _cameraOrigin));
@@ -102,24 +56,31 @@ namespace Engine3D
             if (intercepted)
             {
                 Vector3 interceptionPoint = cameraTrace.dir * dist + cameraTrace.origin;
-                colorVal = LightTrace(interceptionPoint, faceNormal);
+                color = LightTrace(interceptionPoint, faceNormal);
             }
-            return colorVal;
+
+            return color;
         }
 
-        private float LightTrace(Vector3 point, Vector3 faceNormal)
+        private MyColor LightTrace(Vector3 point, Vector3 faceNormal)
         {
-            Ray lightTrace = new (Light, Vector3.Normalize(point - Light));
-            float dotProduct = Vector3.Dot(faceNormal, -lightTrace.dir);
-            float colorVal = 0;
-            
-            if (dotProduct > 0)
+            MyColor color = MyColor.Black;
+
+            foreach (var light in Lights)
             {
-                float distanceSquared = Vector3.DistanceSquared(lightTrace.origin, point);
-                colorVal = dotProduct / distanceSquared;
+                Ray lightTrace = new(point, Vector3.Normalize(light.Position - point));
+                float dotProduct = Vector3.Dot(faceNormal, lightTrace.dir);
+                if (dotProduct > 0)
+                {
+                    float lightDistSqr = Vector3.DistanceSquared(point, light.Position);
+                    float colorVal = dotProduct * light.Intensity / lightDistSqr;
+                    MyColor lColor = light.Color;
+                    lColor.Multiply(new MyColor(colorVal, 1f));
+                    color.Blend(lColor, .5f);
+                }
             }
 
-            return colorVal;
+            return color;
         }
 
         private bool RayFaceInterception(Ray ray, Mesh mesh, out float distance, out Vector3 normal)
@@ -129,8 +90,13 @@ namespace Engine3D
 
             foreach (Face face in mesh.Faces)
             {
-                var tempDistance = CalculateDistanceToTriangle(ray.origin, ray.dir, face.Points[0], face.Points[1],
-                    face.Points[2], out Vector3 faceNormal);
+                float tempDistance = CalculateDistanceToTriangle(
+                    ray.origin,
+                    ray.dir,
+                    face.Points[0],
+                    face.Points[1],
+                    face.Points[2],
+                    out Vector3 faceNormal);
 
                 if (tempDistance == -1) continue;
                 if (tempDistance < distance)
