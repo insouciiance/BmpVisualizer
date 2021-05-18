@@ -18,7 +18,7 @@ namespace Engine3D
         public Vector3 CenterOfScreen { get; }
 
         public Mesh Mesh { get; init; }
-        public Vector3 light { get; set; }
+        public List<Light> Lights;
 
         public Camera(Vector3 cameraOrigin, Vector3 lookAtPoint, float distanceToScreen, Bitmap canvas)
         {
@@ -37,45 +37,59 @@ namespace Engine3D
             {
                 for (int x = 0; x < _canvas.Width; x++)
                 {
-                    Color c = Trace(x, y);
-                    _canvas.SetPixel(x, y, c);
+                    var c = Trace(x, y);
+                    _canvas.SetPixel(x, y, c.ToColor());
                 }
             }
         }
 
-        private Color Trace(int screenX, int screenY)
+        private MyColor Trace(int screenX, int screenY)
         {
-            Vector2 uv = (new Vector2(screenX, screenY) - .5f * new Vector2(_canvas.Width, _canvas.Height)) / _canvas.Height;
-            Color color = Color.Black;
-            
+            Vector2 uv = (new Vector2(screenX, screenY) - .5f * new Vector2(_canvas.Width, _canvas.Height)) /
+                         _canvas.Height;
+            MyColor color = MyColor.Black;
+
             Vector3 rayInterception = CenterOfScreen + uv.X * _localRight + -uv.Y * _localUp;
             Ray cameraTrace = new(_cameraOrigin, Vector3.Normalize(rayInterception - _cameraOrigin));
 
-           // (float min, float max) distanceRange = GetDistanceRange(new Ray(_cameraOrigin, _lookDirection), Mesh);
-            
-            bool intercepted = RayFaceInterception(cameraTrace, Mesh, out float dist,out Vector3 faceNormal);
+            // (float min, float max) distanceRange = GetDistanceRange(new Ray(_cameraOrigin, _lookDirection), Mesh);
+
+            bool intercepted = RayFaceInterception(cameraTrace, Mesh, out float dist, out Vector3 faceNormal);
 
             if (intercepted)
             {
                 Vector3 interceptionPoint = cameraTrace.dir * dist + cameraTrace.origin;
-                Ray lightTrace = new Ray(interceptionPoint,Vector3.Normalize(light - interceptionPoint));
-                float dotProduct = Vector3.Dot(faceNormal, lightTrace.dir);
-                float colorVal = dotProduct >= 0 ? dotProduct / (dist * dist) : 0;
-                if (colorVal < 0)
+                foreach (var light in Lights)
                 {
-                    colorVal = 0;
+                    Ray lightTrace = new Ray(interceptionPoint, Vector3.Normalize(light.Position - interceptionPoint));
+                    float dotProduct = Vector3.Dot(faceNormal, lightTrace.dir);
+                    if (dotProduct > 0)
+                    {
+                        if (color.Equals(MyColor.Black))
+                        {
+                            color = MyColor.White;
+                        }
+                        float lightDistSqr = Vector3.DistanceSquared(interceptionPoint, light.Position);
+                        float colorVal = dotProduct * light.Intensity / lightDistSqr;
+                        var lColor = light.LightColor;
+                        lColor.Multiply(new MyColor(colorVal, 1f));
+                        color.Blend(lColor,.5f);
+                    }
+                    
                 }
 
-                int colorMaped = (int) (Math.Clamp(colorVal,0,1) * 255);
-                color = Color.FromArgb(colorMaped,colorMaped,colorMaped);
+                
+                /*int colorMaped = (int) (Math.Clamp(colorVal,0,1) * 255);
+                color = Color.FromArgb(colorMaped,colorMaped,colorMaped);*/
                 // float perpendicularDistance = Vector3.Dot(_lookDirection, r.dir * dist);
             }
-            
-           // color = Get255Color(intercepted ? perpendicularDistance : 0, distanceRange.min, distanceRange.max);
-            
+
+            // color = Get255Color(intercepted ? perpendicularDistance : 0, distanceRange.min, distanceRange.max);
+
             return color;
         }
-        public bool RayFaceInterception(Ray ray, Mesh mesh, out float distance,out Vector3 normal)
+
+        public bool RayFaceInterception(Ray ray, Mesh mesh, out float distance, out Vector3 normal)
         {
             distance = float.PositiveInfinity;
             normal = Vector3.Zero;
@@ -85,7 +99,8 @@ namespace Engine3D
             {
                 //Vector3 faceNormal = GetPlaneNormal(face.Points[0], face.Points[1], face.Points[2]);
 
-                tempDitance = CalculateDistanceToTriangle(ray.origin, ray.dir, face.Points[0], face.Points[1], face.Points[2], out Vector3 faceNormal);
+                tempDitance = CalculateDistanceToTriangle(ray.origin, ray.dir, face.Points[0], face.Points[1],
+                    face.Points[2], out Vector3 faceNormal);
 
                 if (tempDitance == -1) continue;
                 if (tempDitance < distance)
@@ -94,12 +109,13 @@ namespace Engine3D
                     normal = faceNormal;
                 }
             }
-            
+
             return !float.IsPositiveInfinity(distance);
         }
-        
+
         // Möller–Trumbore intersection algorithm
-        private float CalculateDistanceToTriangle(Vector3 orig, Vector3 dir, Vector3 v0, Vector3 v1, Vector3 v2,out Vector3 normal)
+        private float CalculateDistanceToTriangle(Vector3 orig, Vector3 dir, Vector3 v0, Vector3 v1, Vector3 v2,
+            out Vector3 normal)
         {
             Vector3 e1 = v1 - v0;
             Vector3 e2 = v2 - v0;
@@ -131,6 +147,7 @@ namespace Engine3D
 
             return Vector3.Dot(e2, qvec) * inv_det;
         }
+
         private (float, float) GetDistanceRange(Ray cameraNormal, Mesh m)
         {
             List<float> distances = new();
@@ -146,12 +163,14 @@ namespace Engine3D
 
             return (distances.Min(), distances.Max());
         }
+
         private static Vector3 GetPlaneNormal(Vector3 p1, Vector3 p2, Vector3 p3)
         {
             Vector3 dir1 = p2 - p1;
             Vector3 dir2 = p3 - p1;
             return Vector3.Cross(dir1, dir2);
         }
+
         private float DrawDebugSphere(Ray ray, Vector3 center, float radius)
         {
             float t = Vector3.Dot(center - ray.origin, ray.dir);
@@ -165,6 +184,7 @@ namespace Engine3D
 
             return 0;
         }
+
         private Color Get255Color(float value, float min, float max)
         {
             float clampedValue;
@@ -185,7 +205,7 @@ namespace Engine3D
                 }
             }
 
-            return Color.FromArgb((int)(clampedValue * 255), (int)(clampedValue * 255), (int)(clampedValue * 255));
+            return Color.FromArgb((int) (clampedValue * 255), (int) (clampedValue * 255), (int) (clampedValue * 255));
         }
     }
 }
