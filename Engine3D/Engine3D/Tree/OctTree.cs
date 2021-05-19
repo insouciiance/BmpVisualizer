@@ -9,7 +9,7 @@ namespace Engine3D.Tree
 {
     internal class OctTree
     {
-        private const int MinSize = 1;
+        private const float MinSize = .05f;
 
         public BoundingBox Region { get; init; }
         public OctTree[] Children { get; init; }
@@ -19,15 +19,23 @@ namespace Engine3D.Tree
         {
             Region = maxRegion;
             Faces = faces.ToList();
+            Children = new OctTree[8];
+            BuildTree();
         }
 
         private void BuildTree()
         {
-            if (Faces.Count <= 1) return;
+            if (Faces.Count <= 10)
+            {
+                return;
+            }
 
             Vector3 dimensions = Region.Max - Region.Min;
 
-            if (dimensions.X <= MinSize && dimensions.Y <= MinSize && dimensions.Z <= MinSize) return;
+            if (dimensions.Length() <= MinSize)
+            {
+                return;
+            }
 
             Vector3 half = dimensions / 2;
             Vector3 center = Region.Min + half;
@@ -58,7 +66,6 @@ namespace Engine3D.Tree
                     {
                         regionsElements[i].Add(face);
                         nextElements.Add(face);
-                        break;
                     }
                 }
             }
@@ -80,7 +87,7 @@ namespace Engine3D.Tree
 
         public List<IntersectionRecord> GetIntersection(Ray ray)
         {
-            if (Faces.Count == 0) return null;
+            if (Faces.Count == 0 && Children.All(c => c == null)) return null;
 
             List<IntersectionRecord> intersectedFaces = new();
 
@@ -96,7 +103,7 @@ namespace Engine3D.Tree
 
             for (int i = 0; i < 8; i++)
             {
-                if (Children?[i] != null)
+                if (Children[i] != null && Children[i].Region.Intersects(ray))
                 {
                     List<IntersectionRecord> intersections = Children[i].GetIntersection(ray);
                     if (intersections != null)
@@ -106,6 +113,8 @@ namespace Engine3D.Tree
                             intersectedFaces.Add(ir);
                         }
                     }
+
+                    break;
                 }
             }
 
@@ -118,17 +127,12 @@ namespace Engine3D.Tree
             return tree;
         }
 
-        private bool IsFaceInsideBox(Face f, BoundingBox box)
-        {
-            foreach (Vector3 point in f.Points)
-            {
-                if (Vector3.Min(box.Min, point) == box.Min && Vector3.Max(box.Max, point) == box.Max)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
+        private static bool IsFaceInsideBox(Face f, BoundingBox box) =>
+            Vector3.Min(box.Min, f.Points[0]) == box.Min &&
+            Vector3.Min(box.Min, f.Points[1]) == box.Min &&
+            Vector3.Min(box.Min, f.Points[2]) == box.Min &&
+            Vector3.Max(box.Max, f.Points[0]) == box.Max &&
+            Vector3.Max(box.Max, f.Points[1]) == box.Max &&
+            Vector3.Max(box.Max, f.Points[2]) == box.Max;
     }
 }

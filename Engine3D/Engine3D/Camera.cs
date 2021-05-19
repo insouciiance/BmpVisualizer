@@ -15,6 +15,7 @@ namespace Engine3D
 
         private readonly Vector3 _localRight;
         private readonly Vector3 _localUp;
+        private OctTree _tree;
 
         public Vector3 CenterOfScreen { get; }
 
@@ -35,9 +36,12 @@ namespace Engine3D
 
         public void Draw()
         {
-            //tree = ConstructTree(Mesh);
+            _tree = new(new BoundingBox(new Vector3(-2, -2, -2), new Vector3(2, 2, 2)), Mesh.Faces);
+
             for (int y = 0; y < _canvas.Height; y++)
             {
+                Console.WriteLine($"{y * 100 /_canvas.Height}%");
+
                 for (int x = 0; x < _canvas.Width; x++)
                 {
                     var c = Trace(x, y);
@@ -94,9 +98,7 @@ namespace Engine3D
             distance = float.PositiveInfinity;
             normal = Vector3.Zero;
 
-            OctTree octTree = new (new BoundingBox(new Vector3(-100, -100, -100), new Vector3(100, 100, 100)), Mesh.Faces);
-
-            foreach (IntersectionRecord intersectionRecord in octTree.GetIntersection(ray))
+            foreach (IntersectionRecord intersectionRecord in _tree.GetIntersection(ray))
             {
                 if (intersectionRecord.Distance < distance)
                 {
