@@ -113,8 +113,6 @@ namespace Engine3D.Tree
                             intersectedFaces.Add(ir);
                         }
                     }
-
-                    break;
                 }
             }
 
