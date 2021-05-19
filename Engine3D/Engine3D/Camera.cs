@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using System.Reflection.Metadata;
+using Engine3D.OctTree;
 
 namespace Engine3D
 {
@@ -95,61 +96,17 @@ namespace Engine3D
 
             foreach (Face face in Mesh.Faces)
             {
-                float tempDistance = CalculateDistanceToTriangle(
-                    ray.origin,
-                    ray.dir,
-                    face.Points[0],
-                    face.Points[1],
-                    face.Points[2],
-                    out Vector3 faceNormal);
+                IntersectionRecord recordResult = face.Intersect(ray);
 
-                if (tempDistance == -1) continue;
-                if (tempDistance < distance)
+                if (recordResult == null) continue;
+                if (recordResult.Distance < distance)
                 {
-                    distance = tempDistance;
-                    normal = faceNormal;
+                    distance = recordResult.Distance;
+                    normal = recordResult.Normal;
                 }
             }
 
             return !float.IsPositiveInfinity(distance);
-        }
-
-        // Möller–Trumbore intersection algorithm
-        private float CalculateDistanceToTriangle(Vector3 orig, Vector3 dir, Vector3 v0, Vector3 v1, Vector3 v2,
-            out Vector3 normal)
-        {
-            Vector3 e1 = v1 - v0;
-            Vector3 e2 = v2 - v0;
-
-            normal = Vector3.Normalize(Vector3.Cross(e1, e2));
-
-            // Вычисление вектора нормали к плоскости
-            Vector3 pvec = Vector3.Cross(dir, e2);
-
-            float det = Vector3.Dot(e1, pvec);
-
-            // Луч параллелен плоскости
-            if (det < 1e-8 && det > -1e-8)
-            {
-                return -1;
-            }
-
-            float inv_det = 1 / det;
-            Vector3 tvec = orig - v0;
-            float u = Vector3.Dot(tvec, pvec) * inv_det;
-            if (u < 0 || u > 1)
-            {
-                return -1;
-            }
-
-            Vector3 qvec = Vector3.Cross(tvec, e1);
-            float v = Vector3.Dot(dir, qvec) * inv_det;
-            if (v < 0 || u + v > 1)
-            {
-                return -1;
-            }
-
-            return Vector3.Dot(e2, qvec) * inv_det;
         }
 
         private (float, float) GetDistanceRange(Ray cameraNormal, Mesh m)
