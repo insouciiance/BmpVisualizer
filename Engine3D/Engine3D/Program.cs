@@ -27,7 +27,7 @@ namespace Engine3D
 
             Stopwatch performanceTest = new();
             string url = @"D:/renders/my15.png";
-            Bitmap b = new(320, 180);
+            Bitmap b = new(100, 100);
 
             performanceTest.Start();
 

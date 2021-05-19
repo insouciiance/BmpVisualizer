@@ -1,5 +1,5 @@
 ﻿using System.Numerics;
-using Engine3D.OctTree;
+using Engine3D.Tree;
 
 namespace Engine3D
 {

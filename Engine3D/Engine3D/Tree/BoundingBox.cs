@@ -5,7 +5,7 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Engine3D.OctTree
+namespace Engine3D.Tree
 {
     internal class BoundingBox
     {

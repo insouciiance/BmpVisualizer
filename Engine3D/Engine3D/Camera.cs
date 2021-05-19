@@ -4,11 +4,11 @@ using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using System.Reflection.Metadata;
-using Engine3D.OctTree;
+using Engine3D.Tree;
 
 namespace Engine3D
 {
-    public class Camera
+    internal class Camera
     {
         private readonly Vector3 _cameraOrigin;
         private readonly Bitmap _canvas;
@@ -94,15 +94,14 @@ namespace Engine3D
             distance = float.PositiveInfinity;
             normal = Vector3.Zero;
 
-            foreach (Face face in Mesh.Faces)
-            {
-                IntersectionRecord recordResult = face.Intersect(ray);
+            OctTree octTree = new (new BoundingBox(new Vector3(-100, -100, -100), new Vector3(100, 100, 100)), Mesh.Faces);
 
-                if (recordResult == null) continue;
-                if (recordResult.Distance < distance)
+            foreach (IntersectionRecord intersectionRecord in octTree.GetIntersection(ray))
+            {
+                if (intersectionRecord.Distance < distance)
                 {
-                    distance = recordResult.Distance;
-                    normal = recordResult.Normal;
+                    distance = intersectionRecord.Distance;
+                    normal = intersectionRecord.Normal;
                 }
             }
 

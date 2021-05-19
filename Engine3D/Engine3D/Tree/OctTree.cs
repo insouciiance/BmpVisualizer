@@ -5,7 +5,7 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Engine3D.OctTree
+namespace Engine3D.Tree
 {
     internal class OctTree
     {
@@ -76,6 +76,40 @@ namespace Engine3D.OctTree
                     Children[i].BuildTree();
                 }
             }
+        }
+
+        public List<IntersectionRecord> GetIntersection(Ray ray)
+        {
+            if (Faces.Count == 0) return null;
+
+            List<IntersectionRecord> intersectedFaces = new();
+
+            foreach (Face face in Faces)
+            {
+                IntersectionRecord ir;
+
+                if ((ir = face.Intersect(ray)) != null)
+                {
+                    intersectedFaces.Add(ir);
+                }
+            }
+
+            for (int i = 0; i < 8; i++)
+            {
+                if (Children?[i] != null)
+                {
+                    List<IntersectionRecord> intersections = Children[i].GetIntersection(ray);
+                    if (intersections != null)
+                    {
+                        foreach (IntersectionRecord ir in intersections)
+                        {
+                            intersectedFaces.Add(ir);
+                        }
+                    }
+                }
+            }
+
+            return intersectedFaces;
         }
 
         private OctTree CreateNode(BoundingBox region, IEnumerable<Face> faces)

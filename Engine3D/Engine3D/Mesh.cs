@@ -2,7 +2,7 @@
 
 namespace Engine3D
 {
-    public class Mesh
+    internal class Mesh
     {
         public Face[] Faces { get; }
 

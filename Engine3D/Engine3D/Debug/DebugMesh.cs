@@ -2,7 +2,7 @@
 
 namespace Engine3D.Debug
 {
-    public static class DebugMesh
+    internal static class DebugMesh
     {
         public static Mesh Cube = new Mesh(new[]
         {
