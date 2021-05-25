@@ -29,14 +29,14 @@ namespace Engine3D
             _canvas = canvas;
 
             var lookDirection = Vector3.Normalize(lookAtPoint - _cameraOrigin);
-            _localRight = Vector3.Cross(lookDirection, new Vector3(0, 0, 1));
+            _localRight = Vector3.Cross(lookDirection, new Vector3(0, 1, 0));
             _localUp = Vector3.Cross(_localRight, lookDirection);
             CenterOfScreen = cameraOrigin + lookDirection * distanceToScreen;
         }
 
         public void Draw()
         {
-            _tree = new(new BoundingBox(new Vector3(-2, -2, -2), new Vector3(2, 2, 2)), Mesh.Faces);
+            _tree = new(new BoundingBox(new Vector3(-30, -30, -30), new Vector3(30, 30, 30)), Mesh.Faces);
 
             for (int y = 0; y < _canvas.Height; y++)
             {

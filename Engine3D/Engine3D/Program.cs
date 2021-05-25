@@ -21,20 +21,19 @@ namespace Engine3D
          */
         static async Task Main(string[] args)
         {
-            string meshUrl = "cow.obj";
+            string meshUrl = "koenigsegg.obj";
             ObjFileReader reader = new(meshUrl);
             Mesh mesh = await reader.ReadAsync();
 
             Stopwatch performanceTest = new();
-            string url = @"my1.png";
+            string url = @"mycar1.png";
             Bitmap b = new(1920, 1080);
 
             performanceTest.Start();
-
-            Camera cam = new(new Vector3(0, -1, 0), new Vector3(0, 0, 0), 1, b)
+            Camera cam = new(new Vector3(18, 18, 18), new Vector3(0, 0, 0), 1, b)
             {
                 Mesh = mesh,
-                Lights = new List<Light>{new (new Vector3(0, -1, 0), MyColor.White, .5f)}
+                Lights = new List<Light>{new (new Vector3(10, 10, 10), MyColor.White, 50f)}
             };
             cam.Draw();
 

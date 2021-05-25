@@ -5,12 +5,13 @@ using System.Numerics;
 using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.VisualBasic.CompilerServices;
 
 namespace Engine3D.Tree
 {
     internal class OctTree
     {
-        private const float MinSize = .05f;
+        private const float MinSize = .0005f;
 
         public BoundingBox Region { get; init; }
         public OctTree[] Children { get; init; }
@@ -87,7 +88,6 @@ namespace Engine3D.Tree
                 if (regionsElements[i].Count != 0)
                 {
                     Children[i] = CreateNode(childRegions[i], regionsElements[i]);
-                    Children[i].BuildTree();
                 }
             }
         }
@@ -143,7 +143,7 @@ namespace Engine3D.Tree
             Vector3 v1 = f.Points[1] - c;
             Vector3 v2 = f.Points[2] - c;
 
-            Vector3 f0 = f.Points[1] - f.Points[1];
+            Vector3 f0 = f.Points[1] - f.Points[0];
             Vector3 f1 = f.Points[2] - f.Points[1];
             Vector3 f2 = f.Points[0] - f.Points[2];
             
@@ -174,6 +174,7 @@ namespace Engine3D.Tree
             {
                 return false;
             }
+            
             
             Vector3 a02;
             a02.X = 0;
@@ -295,7 +296,7 @@ namespace Engine3D.Tree
             r = e0 * Math.Abs(plane_normal.X) + e1 * Math.Abs(plane_normal.Y) +
                 e2 * Math.Abs(plane_normal.Z);
 
-            if (plane_distance > r) return false;
+            if (plane_distance - Math.Sqrt(Math.Pow(c.X,2) + Math.Pow(c.Y,2) + Math.Pow(c.Z,2)) > r) return false;
 
             return true;
             // Vector3.Min(box.Min, f.Points[0]) == box.Min &&
