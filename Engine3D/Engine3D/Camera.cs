@@ -29,7 +29,7 @@ namespace Engine3D
             _canvas = canvas;
 
             var lookDirection = Vector3.Normalize(lookAtPoint - _cameraOrigin);
-            _localRight = Vector3.Cross(lookDirection, new Vector3(0, 1, 0));
+            _localRight = Vector3.Cross(lookDirection, new Vector3(0, 0, 1));
             _localUp = Vector3.Cross(_localRight, lookDirection);
             CenterOfScreen = cameraOrigin + lookDirection * distanceToScreen;
         }

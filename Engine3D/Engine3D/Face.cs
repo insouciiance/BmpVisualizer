@@ -27,8 +27,8 @@ namespace Engine3D
         {
             // Möller–Trumbore intersection algorithm
 
-            Vector3 orig = ray.origin;
-            Vector3 dir = ray.dir;
+            Vector3 orig = ray.Origin;
+            Vector3 dir = ray.Dir;
             Vector3 v0 = Points[0];
             Vector3 v1 = Points[1];
             Vector3 v2 = Points[2];
@@ -65,7 +65,7 @@ namespace Engine3D
             }
 
             var distance = Vector3.Dot(e2, qvec) * inv_det;
-            var intersectionPoint = ray.origin + ray.dir * distance;
+            var intersectionPoint = ray.Origin + ray.Dir * distance;
 
             return new IntersectionRecord(intersectionPoint, normal, ray, this, distance);
         }

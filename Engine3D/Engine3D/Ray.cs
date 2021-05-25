@@ -4,14 +4,13 @@ namespace Engine3D
 {
     public struct Ray
     {
-        public Vector3 origin;
-        public Vector3 dir;
+        public Vector3 Origin { get; set; }
+        public Vector3 Dir { get; set; }
 
         public Ray(Vector3 origin, Vector3 dir)
         {
-            this.origin = origin;
-            this.dir = dir;
+            this.Origin = origin;
+            this.Dir = dir;
         }
-        
     }
 }

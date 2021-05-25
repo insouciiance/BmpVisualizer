@@ -94,7 +94,17 @@ namespace Engine3D.Tree
 
         public List<IntersectionRecord> GetIntersection(Ray ray)
         {
-            if (Faces.Count == 0 && Children.All(c => c == null)) return null;
+            bool allChildrenNull = true;
+
+            foreach (OctTree child in Children)
+            {
+                if (child is not null)
+                {
+                    allChildrenNull = false;
+                }
+            }
+
+            if (allChildrenNull && Faces.Count == 0) return null;
 
             List<IntersectionRecord> intersectedFaces = new();
 
