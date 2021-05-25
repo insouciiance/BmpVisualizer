@@ -63,7 +63,7 @@ namespace Engine3D
 
             if (intercepted)
             {
-                Vector3 interceptionPoint = cameraTrace.dir * dist + cameraTrace.origin;
+                Vector3 interceptionPoint = cameraTrace.Dir * dist + cameraTrace.Origin;
                 color = LightTrace(interceptionPoint, faceNormal);
             }
 
@@ -77,7 +77,7 @@ namespace Engine3D
             foreach (Light light in Lights)
             {
                 Ray lightTrace = new(point, Vector3.Normalize(light.Position - point));
-                float dotProduct = Vector3.Dot(faceNormal, lightTrace.dir);
+                float dotProduct = Vector3.Dot(faceNormal, lightTrace.Dir);
                 if (dotProduct > 0)
                 {
                     float lightDistSqr = Vector3.DistanceSquared(point, light.Position);
@@ -118,7 +118,7 @@ namespace Engine3D
             {
                 foreach (Vector3 point in f.Points)
                 {
-                    float distance = Vector3.Dot(point - cameraNormal.origin, cameraNormal.dir);
+                    float distance = Vector3.Dot(point - cameraNormal.Origin, cameraNormal.Dir);
                     distances.Add(distance);
                 }
             }
