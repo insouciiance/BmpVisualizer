@@ -20,14 +20,14 @@ namespace Engine3D
             Mesh mesh = await reader.ReadAsync();
 
             Stopwatch performanceTest = new();
-            string url = @"D:/renders/cow4k.png";
-            Bitmap b = new(3840, 2160);
+            string url = @"cow44k.png";
+            Bitmap b = new(800, 600);
 
             performanceTest.Start();
-            Camera cam = new(new Vector3(0, -1, 0), new Vector3(0, 0, 0), 1, b)
+            Camera cam = new(new Vector3(28, 28, 28), new Vector3(0, 0, 0), 1, b)
             {
                 Mesh = mesh,
-                Lights = new List<Light>{new (new Vector3(0, -1, 0), MyColor.White, .5f)}
+                Lights = new List<Light>{new (new Vector3(28, 28, 28), MyColor.White, 500f)}
             };
             cam.Draw();
 

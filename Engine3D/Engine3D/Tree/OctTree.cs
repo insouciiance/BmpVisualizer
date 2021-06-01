@@ -73,15 +73,11 @@ namespace Engine3D.Tree
                     if (IsFaceInsideBox(face, childRegions[i]))
                     {
                         regionsElements[i].Add(face);
-                        nextElements.Add(face);
                     }
                 }
             }
 
-            foreach (Face nextFace in nextElements)
-            {
-                Faces.Remove(nextFace);
-            }
+            Faces.Clear();
 
             for (int i = 0; i < 8; i++)
             {
@@ -142,7 +138,7 @@ namespace Engine3D.Tree
             return tree;
         }
 
-        private static bool IsFaceInsideBox(Face f, BoundingBox box)
+        private static bool IsFaceInsideBox(Face f, BoundingBox box)//book - Real-Time Collision Detection
         {
             Vector3 c = (box.Min + box.Max) * 0.5f;
             float e0 = (box.Max.X - box.Min.X) * 0.5f;
@@ -306,7 +302,7 @@ namespace Engine3D.Tree
             r = e0 * Math.Abs(plane_normal.X) + e1 * Math.Abs(plane_normal.Y) +
                 e2 * Math.Abs(plane_normal.Z);
 
-            if (plane_distance - Math.Sqrt(Math.Pow(c.X,2) + Math.Pow(c.Y,2) + Math.Pow(c.Z,2)) > r) return false;
+            //if (plane_distance - Math.Sqrt(Math.Pow(c.X,2) + Math.Pow(c.Y,2) + Math.Pow(c.Z,2)) > r) return false;
 
             return true;
             // Vector3.Min(box.Min, f.Points[0]) == box.Min &&
