@@ -29,7 +29,7 @@ namespace Engine3D
             _canvas = canvas;
 
             var lookDirection = Vector3.Normalize(lookAtPoint - _cameraOrigin);
-            _localRight = Vector3.Cross(lookDirection, new Vector3(0, 0, 1));
+            _localRight = Vector3.Cross(lookDirection, new Vector3(0, 1, 0));
             _localUp = Vector3.Cross(_localRight, lookDirection);
             CenterOfScreen = cameraOrigin + lookDirection * distanceToScreen;
         }
@@ -44,7 +44,7 @@ namespace Engine3D
 
                 for (int x = 0; x < _canvas.Width; x++)
                 {
-                    var c = Trace(x, y);
+                    MyColor c = Trace(x, y);
                     _canvas.SetPixel(x, y, c.ToColor());
                 }
             }
@@ -82,7 +82,16 @@ namespace Engine3D
                 {
                     float lightDistSqr = Vector3.DistanceSquared(point, light.Position);
                     float colorVal = dotProduct * light.Intensity / lightDistSqr;
-                    MyColor lColor = light.Color;
+                    float coordsSquared = (float)Math.Sqrt(faceNormal.X * faceNormal.X +
+                                                           faceNormal.Y * faceNormal.Y +
+                                                           faceNormal.Z * faceNormal.Z);
+
+                    float rColor = Math.Abs(faceNormal.X) / coordsSquared;
+                    float gColor = Math.Abs(faceNormal.Y) / coordsSquared;
+                    float bColor = Math.Abs(faceNormal.Z) / coordsSquared;
+
+                    MyColor lColor = new MyColor(rColor, gColor, bColor);
+
                     lColor.Multiply(new MyColor(colorVal, 1f));
 
                     color ??= lColor;
